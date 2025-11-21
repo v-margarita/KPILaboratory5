@@ -10,8 +10,8 @@ namespace LabWork5_Variant4
 {
     public class SeleniumTests
     {
-        private IWebDriver driver = null!;
-        private WebDriverWait wait = null!;
+        private IWebDriver driver;
+        private WebDriverWait wait;
         private const string BaseUrl = "https://the-internet.herokuapp.com";
 
         [SetUp]
@@ -130,15 +130,20 @@ namespace LabWork5_Variant4
         public void Test9_JavaScriptErrors()
         {
             driver.Navigate().GoToUrl($"{BaseUrl}/javascript_error");
-            var errorText = driver.FindElement(By.TagName("p")).Text;
-            Assert.IsTrue(errorText.Contains("This page has a JavaScript error"));
+            var logs = driver.Manage().Logs.GetLog(LogType.Browser);
+            bool hasError = logs.Any(log => log.Level == LogLevel.Severe);
+            Assert.IsTrue(hasError, "У консолі браузера не знайдено JS помилок!");
+
+            foreach (var log in logs)
+            {
+                Console.WriteLine($"Console log: {log.Message}");
+            }
         }
 
         [Test]
         public void Test10_ExitIntent()
         {
             driver.Navigate().GoToUrl($"{BaseUrl}/exit_intent");
-
 
             IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
             js.ExecuteScript(@"
@@ -152,7 +157,6 @@ namespace LabWork5_Variant4
             ");
 
             var modal = wait.Until(ExpectedConditions.ElementIsVisible(By.ClassName("modal")));
-
             Assert.IsTrue(modal.Displayed, "Модальне вікно не з'явилося");
             driver.FindElement(By.XPath("//div[@class='modal-footer']/p")).Click();
         }
